@@ -1,0 +1,25 @@
+# ── SECRETS — NEVER UPLOAD ──────────────────────────────
+.env
+*.env
+secrets.toml
+.streamlit/secrets.toml
+
+# ── Python cache ─────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+
+# ── Virtual environments ─────────────────────────────────
+venv/
+env/
+.venv/
+
+# ── OS files ─────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── IDE files ────────────────────────────────────────────
+.vscode/
+.idea/
