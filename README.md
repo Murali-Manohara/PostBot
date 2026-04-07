@@ -1,6 +1,6 @@
 # 📮 PostBot — India Post Infrastructure AI
 
-**Group 10 | Great Lakes PGP Data Science & GenAI | Batch Sep 2025–Apr 2026**
+**Great Lakes PGP Data Science & GenAI | Batch Sep 2025–Apr 2026**
 
 An AI-powered decision support system for India Post officers to analyse district postal infrastructure, understand delivery performance, and get targeted recommendations.
 
@@ -8,7 +8,7 @@ An AI-powered decision support system for India Post officers to analyse distric
 
 ## 🚀 Live Demo
 
-> Deployed on Streamlit Cloud → *(add your URL here after deployment)*
+> Deployed on Streamlit Cloud → *https://postbot-5gnefgmmr9pq4p36fmd4jz.streamlit.app/*
 
 ---
 
@@ -115,18 +115,7 @@ GROQ_API_KEY = "gsk_your_actual_key_here"
 | 🔴 Low Performance | < 70% | ~15.9% |
 
 ---
-
-## 👥 Team
-
-| Name | Role |
-|------|------|
-| Murali Manohara | Team Leader |
-| Lokesh Paluri | Member |
-| Vishwa Desai | Member |
-| Basagouda Patil | Member |
-| Vivek Pathak | Member |
-| Sarthak Rana | Member |
-| Akash Dudhe | Member |
+**Author:** Murali Manohara
 
 **Mentor:** Mr. Aishwarya Sarda  
 **Program:** PGP in Data Science & GenAI, Great Lakes Institute of Management
