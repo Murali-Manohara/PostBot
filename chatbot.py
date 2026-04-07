@@ -8,9 +8,13 @@ Key format: gsk_...
 """
 
 import os
-from dotenv import load_dotenv
+import streamlit as st
 
-load_dotenv()  # reads GROQ_API_KEY from .env silently
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 try:
     from groq import Groq
@@ -20,23 +24,28 @@ except ImportError:
 
 
 def _get_client():
-    """Get Groq client using key from .env file."""
-    key = os.getenv("GROQ_API_KEY", "").strip()
+    """Get Groq client — works both locally (.env) and on Streamlit Cloud (secrets)."""
+
+    # Try Streamlit Cloud secrets first
+    try:
+        key = st.secrets["GROQ_API_KEY"].strip()
+    except Exception:
+        # Fall back to .env file for local use
+        key = os.getenv("GROQ_API_KEY", "").strip()
 
     if not key:
         return None, (
-            "❌ GROQ_API_KEY not found in .env file.\n\n"
-            "Steps to fix:\n"
-            "1. Go to console.groq.com → Sign up free\n"
-            "2. Click API Keys → Create API Key\n"
-            "3. Open your .env file and add:\n"
-            "   GROQ_API_KEY=gsk_your_key_here"
+            "❌ GROQ_API_KEY not found.\n\n"
+            "Local: Add to your .env file:\n"
+            "   GROQ_API_KEY=gsk_your_key_here\n\n"
+            "Streamlit Cloud: Go to App Settings → Secrets → add:\n"
+            "   GROQ_API_KEY = \"gsk_your_key_here\""
         )
 
     if not GROQ_AVAILABLE:
         return None, (
             "❌ groq package not installed.\n"
-            "Run in CMD: pip install groq"
+            "Run: pip install groq"
         )
 
     try:
@@ -133,7 +142,7 @@ def ask_postbot(question: str, officer: dict,
     # Build conversation history for context
     messages = [{"role": "system", "content": system_prompt}]
 
-    # Add last 6 messages of history for context (keep prompt short)
+    # Add last 6 messages of history for context
     recent = chat_history[-6:] if len(chat_history) > 6 else chat_history
     for msg in recent:
         role = "user" if msg["role"] == "user" else "assistant"
@@ -144,10 +153,10 @@ def ask_postbot(question: str, officer: dict,
 
     try:
         response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",   # Best free model on Groq
+            model="llama-3.3-70b-versatile",
             messages=messages,
             max_tokens=1024,
-            temperature=0.4,    # Slightly creative but mostly factual
+            temperature=0.4,
         )
         return response.choices[0].message.content
 
@@ -168,9 +177,7 @@ def ask_postbot(question: str, officer: dict,
                 "Steps to fix:\n"
                 "1. Go to **console.groq.com**\n"
                 "2. Click **API Keys** → **Create API Key**\n"
-                "3. Open your `.env` file and update:\n"
-                "   `GROQ_API_KEY=gsk_your_new_key_here`\n"
-                "4. Restart the app with `streamlit run app.py`"
+                "3. Update your `.env` file or Streamlit Cloud secrets."
             )
 
         if "quota" in err_str or "exceeded" in err_str:
@@ -179,15 +186,14 @@ def ask_postbot(question: str, officer: dict,
                 "Your daily limit of 14,400 free requests on Groq has been reached.\n\n"
                 "Options:\n"
                 "• Wait until tomorrow (quota resets daily)\n"
-                "• Create a new free account at **console.groq.com**\n"
-                "• The pre-calculated analysis on screen is still accurate and available."
+                "• Create a new free account at **console.groq.com**"
             )
 
         return f"⚠️ Groq API error: {e}\n\nPlease try again in a moment."
 
 
 def test_api_key() -> tuple:
-    """Test if the Groq API key in .env is working. Returns (bool, message)."""
+    """Test if the Groq API key is working. Returns (bool, message)."""
     client, err = _get_client()
     if err:
         return False, err

@@ -59,6 +59,29 @@ button[data-testid="collapsedControl"]:hover {
 }
 /* Keep sidebar visible even on smaller screens */
 [data-testid="stSidebarNav"] { display:none; }
+/* Make the > arrow button large, bright orange, always visible */
+button[data-testid="collapsedControl"] {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    background: #e8612c !important;
+    color: white !important;
+    border-radius: 0 10px 10px 0 !important;
+    width: 36px !important;
+    min-height: 80px !important;
+    border: none !important;
+    box-shadow: 3px 0 10px rgba(232,97,44,0.5) !important;
+    z-index: 9999 !important;
+}
+button[data-testid="collapsedControl"]:hover {
+    background: #c44d22 !important;
+    width: 40px !important;
+}
+button[data-testid="collapsedControl"] svg {
+    fill: white !important;
+    width: 18px !important;
+    height: 18px !important;
+}
 
 /* Inputs */
 .stTextInput > div > div > input {
@@ -408,78 +431,17 @@ def login_page():
 def district_page(df):
     o = st.session_state.officer
 
-    # ── SIDEBAR: officer card + state/district dropdowns + buttons ────────────
+    # Sidebar: only logout button — no dropdowns
     with st.sidebar:
-        # Officer card
         st.markdown(
-            f'<div style="background:linear-gradient(135deg,#0a1628,#0d1e33);'
-            f'border:1px solid #e8612c50;border-radius:12px;padding:14px;margin-bottom:16px;">'
-            f'<div style="color:#e8612c;font-size:10px;font-weight:800;letter-spacing:2px;'
-            f'margin-bottom:6px;">👤 LOGGED IN AS</div>'
-            f'<div style="color:#ffffff;font-weight:800;font-size:15px;">{o["name"]}</div>'
-            f'<div style="color:#e2e8f0;font-size:11px;margin-top:2px;">{o["role"]}</div>'
-            f'<div style="color:#e2e8f0;font-size:11px;">Circle: {o["circle"]}</div>'
-            f'<div style="color:#94a3b8;font-size:10px;margin-top:2px;">{o["id"]}</div>'
+            f'<div style="background:#0a1628;border:1px solid #e8612c50;'
+            f'border-radius:10px;padding:12px;margin-bottom:10px;">'
+            f'<div style="color:#e8612c;font-size:9px;font-weight:800;letter-spacing:2px;margin-bottom:4px;">LOGGED IN AS</div>'
+            f'<div style="color:#ffffff;font-weight:700;font-size:13px;">{o["name"]}</div>'
+            f'<div style="color:#e2e8f0;font-size:11px;">{o["role"]}</div>'
             f'</div>',
             unsafe_allow_html=True
         )
-
-        # Select district header
-        st.markdown(
-            '<div style="background:#e8612c;border-radius:8px;padding:9px;'
-            'text-align:center;margin-bottom:14px;">'
-            '<span style="color:white;font-weight:800;font-size:13px;letter-spacing:1px;">'
-            '📍 SELECT YOUR DISTRICT</span></div>',
-            unsafe_allow_html=True
-        )
-
-        states    = get_states(df)
-        sel_st_t  = st.selectbox(
-            "🗺️ State",
-            ["-- Select State --"] + [s.title() for s in states],
-            key="sb_state_d"
-        )
-        fetch_clicked = False
-        sel_state = sel_dist = ""
-
-        if sel_st_t == "-- Select State --":
-            st.info("👆 Select a state to see districts")
-        else:
-            sel_state = sel_st_t.upper()
-            dists     = get_districts(df, sel_state)
-            sel_dt_t  = st.selectbox(
-                f"📍 District  ({len(dists)} available)",
-                ["-- Select District --"] + [d.title() for d in dists],
-                key="sb_dist_d"
-            )
-            if sel_dt_t != "-- Select District --":
-                sel_dist = sel_dt_t.upper()
-                preview  = get_district_info(df, sel_state, sel_dist)
-                if preview:
-                    tier = get_tier(preview['district_delivery_rate'])
-                    st.markdown(
-                        f'<div style="background:{tier["bg"]};border:1px solid {tier["color"]}50;'
-                        f'border-radius:10px;padding:12px;margin:10px 0;">'
-                        f'<div style="color:#ffffff;font-size:9px;font-weight:800;'
-                        f'letter-spacing:1.5px;margin-bottom:6px;">PREVIEW</div>'
-                        f'<div style="color:{tier["color"]};font-size:26px;font-weight:900;'
-                        f'font-family:monospace;">{preview["district_delivery_rate"]*100:.1f}%</div>'
-                        f'<div style="color:#e2e8f0;font-size:11px;margin-top:5px;">'
-                        f'🟩 {preview["bo_count"]} &nbsp; '
-                        f'🟧 {preview["po_count"]} &nbsp; '
-                        f'🟦 {preview["ho_count"]}</div>'
-                        f'<div style="color:{tier["color"]};font-size:11px;font-weight:700;margin-top:4px;">'
-                        f'{tier["emoji"]} {tier["label"]}</div>'
-                        f'</div>',
-                        unsafe_allow_html=True
-                    )
-                fetch_clicked = st.button(
-                    "📊  ANALYSE DISTRICT",
-                    use_container_width=True,
-                    key="fetch_sidebar"
-                )
-
-        st.markdown("---")
         if st.button("🚪  Logout", use_container_width=True, key="logout_d"):
             for k in list(st.session_state.keys()):
                 del st.session_state[k]
@@ -489,7 +451,7 @@ def district_page(df):
     banner()
     step_bar()
 
-    # Welcome card + dataset stats
+    # ── Welcome card + Dataset Overview ──────────────────────────────────────
     col_msg, col_stats = st.columns([3, 2])
     with col_msg:
         st.markdown(
@@ -534,6 +496,101 @@ def district_page(df):
                 f'</div>',
                 unsafe_allow_html=True
             )
+
+    # ── District Selection Card — IN MAIN PAGE (100% reliable, no sidebar) ───
+    st.markdown(
+        '<div style="background:linear-gradient(135deg,#0a1628,#0d1e33);'
+        'border:2px solid #e8612c;border-radius:14px;padding:24px;margin-bottom:8px;">'
+        '<h4 style="color:white;font-weight:900;margin:0 0 18px 0;">'
+        '📍 Select Your District</h4>',
+        unsafe_allow_html=True
+    )
+
+    states = get_states(df)
+    col_s, col_d = st.columns(2)
+    with col_s:
+        sel_st_t = st.selectbox(
+            "🗺️ State",
+            ["-- Select State --"] + [s.title() for s in states],
+            key="main_state"
+        )
+
+    fetch_clicked = False
+    sel_state = sel_dist = ""
+
+    if sel_st_t != "-- Select State --":
+        sel_state = sel_st_t.upper()
+        dists = get_districts(df, sel_state)
+        with col_d:
+            sel_dt_t = st.selectbox(
+                f"📍 District  ({len(dists)} available)",
+                ["-- Select District --"] + [d.title() for d in dists],
+                key="main_dist"
+            )
+        if sel_dt_t != "-- Select District --":
+            sel_dist = sel_dt_t.upper()
+            preview  = get_district_info(df, sel_state, sel_dist)
+            if preview:
+                tier = get_tier(preview['district_delivery_rate'])
+                rate = preview['district_delivery_rate']*100
+                p1, p2, p3, p4, p5 = st.columns(5)
+                with p1:
+                    st.markdown(
+                        f'<div style="background:{tier["bg"]};border:1px solid {tier["color"]}50;'
+                        f'border-radius:10px;padding:10px;text-align:center;">'
+                        f'<div style="color:{tier["color"]};font-size:22px;font-weight:900;">{rate:.1f}%</div>'
+                        f'<div style="color:#e2e8f0;font-size:10px;">Delivery Rate</div>'
+                        f'</div>',
+                        unsafe_allow_html=True
+                    )
+                with p2:
+                    st.markdown(
+                        f'<div style="background:#052010;border:1px solid #22c55e40;'
+                        f'border-radius:10px;padding:10px;text-align:center;">'
+                        f'<div style="color:#22c55e;font-size:22px;font-weight:900;">{preview["bo_count"]}</div>'
+                        f'<div style="color:#e2e8f0;font-size:10px;">🟩 Branch (BO)</div>'
+                        f'</div>',
+                        unsafe_allow_html=True
+                    )
+                with p3:
+                    st.markdown(
+                        f'<div style="background:#120800;border:1px solid #f9731640;'
+                        f'border-radius:10px;padding:10px;text-align:center;">'
+                        f'<div style="color:#f97316;font-size:22px;font-weight:900;">{preview["po_count"]}</div>'
+                        f'<div style="color:#e2e8f0;font-size:10px;">🟧 Sub PO</div>'
+                        f'</div>',
+                        unsafe_allow_html=True
+                    )
+                with p4:
+                    st.markdown(
+                        f'<div style="background:#030d1e;border:1px solid #3b82f640;'
+                        f'border-radius:10px;padding:10px;text-align:center;">'
+                        f'<div style="color:#3b82f6;font-size:22px;font-weight:900;">{preview["ho_count"]}</div>'
+                        f'<div style="color:#e2e8f0;font-size:10px;">🟦 Head (HO)</div>'
+                        f'</div>',
+                        unsafe_allow_html=True
+                    )
+                with p5:
+                    st.markdown(
+                        f'<div style="background:{tier["bg"]};border:1px solid {tier["color"]}50;'
+                        f'border-radius:10px;padding:10px;text-align:center;">'
+                        f'<div style="color:{tier["color"]};font-size:14px;font-weight:800;">{tier["emoji"]}</div>'
+                        f'<div style="color:{tier["color"]};font-size:10px;font-weight:700;">{tier["label"]}</div>'
+                        f'</div>',
+                        unsafe_allow_html=True
+                    )
+                st.markdown("<br>", unsafe_allow_html=True)
+                fetch_clicked = st.button(
+                    "📊  ANALYSE DISTRICT",
+                    use_container_width=True,
+                    key="main_fetch"
+                )
+    else:
+        with col_d:
+            st.selectbox("📍 District", ["-- Select state first --"],
+                         disabled=True, key="main_dist_off")
+
+    st.markdown('</div>', unsafe_allow_html=True)
 
     # Handle fetch
     if fetch_clicked:
